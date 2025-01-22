@@ -1,4 +1,5 @@
 import Blog from "../models/Blog.js";
+import User from "../models/User.js";
 
 const createBlog = async (req, res) => {
     try {
@@ -16,7 +17,10 @@ const createBlog = async (req, res) => {
 
 const fetchBlog = async (req, res) => {
     try {
-        const blog = await Blog.findByPk(req.params.id);
+        const blog = await Blog.findOne({
+            where: { id: req.params.id },
+            include: User,
+        });
         if (!blog) {
             return res.status(404).json({ message: "Blog not found" });
         }
