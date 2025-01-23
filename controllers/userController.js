@@ -2,6 +2,7 @@ import sequelize from "../config/dbConfig.js";
 import Blog from "../models/Blog.js";
 import User from "../models/User.js";
 import bcrypt from "bcrypt";
+import { generatetoken } from "../utils/jwt.js";
 
 const signUp = async (req, res) => {
     try {
@@ -42,22 +43,38 @@ const signUp = async (req, res) => {
     }
 };
 
-const signIn = async (req, res) => {};
+const signIn = async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const user = await User.findOne({ where: { username: username } });
+        if (!user) {
+            return res.status(400).json({ message: "User not found!" });
+        }
+
+        const matched = await bcrypt.compare(password, user.password);
+        if (!matched) {
+            return res.status(400).json({ message: "Invalid credentials!" });
+        }
+
+        const token = generatetoken(user.id);
+        return res.status(200).json({ token, message: "Login successful!" });
+    } catch (e) {
+        console.error("[Login]: ", e);
+        return res.status(500).json({ message: "Internal server error!" });
+    }
+};
 
 const user = async (req, res) => {
     try {
-        const sql = `SELECT * FROM users users.id as userID INNER JOIN blogs blogs.id as blogID ON users.id = blogs.author_id WHERE users.id = ${req.params.id} `;
-
-        const [results, metadata] = await sequelize.query(sql);
-        console.log(results);
-        console.log(metadata);
-
-        // const user = await User.findOne({
-        //     where: { id: req.params.id },
-        // });
-
-        // const
-        return res.status(200).json({ results });
+        const user = await User.findByPk(req.params.id, {
+            attributes: {
+                exclude: ["password", "updated_at"],
+            },
+        });
+        if (!user) {
+            return res.status(400).json({ message: "User not found!" });
+        }
+        return res.status(200).json({ user });
     } catch (e) {
         console.error("[userfetch]: ", e);
         return res.status(500).json({ message: "Internal server error!" });

@@ -2,18 +2,26 @@ import express from "express";
 import cors from "cors";
 import sequelize from "./config/dbConfig.js";
 import blogRouter from "./routes/blogRoutes.js";
-import { syncDB } from "./utils/utils.js";
 import authRouter from "./routes/authRoutes.js";
+import Blog from "./models/Blog.js";
+import User from "./models/User.js";
+import "./models/associations.js";
 
 const PORT = process.env.PORT;
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-app.use("/api", blogRouter, authRouter);
+app.use("/api/blogs", blogRouter);
+app.use("/api/auth", authRouter);
 
-syncDB();
-
-app.listen(PORT, () => {
-    console.log(`API hosted at http://localhost:${PORT}`);
-});
+sequelize
+    .sync()
+    .then(() => {
+        app.listen(PORT, () => {
+            console.log(`API hosted at http://localhost:${PORT}`);
+        });
+    })
+    .catch((e) => {
+        console.error("Could not sync database: ", e);
+    });

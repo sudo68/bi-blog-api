@@ -46,6 +46,4 @@ Blog.init(
     }
 );
 
-Blog.belongsTo(User, { foreignKey: "author_id" });
-
 export default Blog;

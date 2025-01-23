@@ -6,13 +6,11 @@ import {
     fetchBlogs,
     updateBlog,
 } from "../controllers/blogController.js";
+import { protect } from "../middlewares/authMiddleware.js";
 
 const blogRouter = express.Router();
 
-blogRouter.get("/blogs", fetchBlogs);
-blogRouter.get("/blogs/:id", fetchBlog);
-blogRouter.post("/blogs", createBlog);
-blogRouter.put("/blogs/:id", updateBlog);
-blogRouter.delete("/blogs/:id", deleteBlog);
+blogRouter.route("/").get(protect, fetchBlogs).post(createBlog);
+blogRouter.route("/:id").get(fetchBlog).put(updateBlog).delete(deleteBlog);
 
 export default blogRouter;
